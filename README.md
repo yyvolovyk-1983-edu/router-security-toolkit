@@ -1,63 +1,32 @@
+<div align="center">
+
 # Router Security Toolkit
 
-> Набір Python-інструментів для авторизованого аудиту безпеки роутерів та домашніх мереж.
+**Python-інструменти для авторизованого аудиту безпеки роутерів та домашніх мереж**
 
-[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
-[![Security](https://img.shields.io/badge/Use-Authorized_Only-red?style=flat)]()
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://github.com/yyvolovyk-1983-edu/router-security-toolkit)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+[![No Dependencies](https://img.shields.io/badge/Dependencies-stdlib_only-brightgreen?style=for-the-badge)]()
+[![Authorized Only](https://img.shields.io/badge/Use-Authorized_Only-red?style=for-the-badge)]()
 
----
-
-## ⚠️ Відповідальне використання
-
-Ці інструменти призначені **виключно для авторизованого тестування** — власних пристроїв або за письмовим дозволом власника мережі. Несанкціоноване тестування чужих мереж є протизаконним.
+</div>
 
 ---
 
 ## Інструменти
 
-### `http_probe.py` — HTTP Path Scanner
-Перевіряє типові вразливі HTTP-шляхи на роутерах (Boa HTTPd, Netis, LuCI, TP-Link).
+| Файл | Що робить |
+|---|---|
+| `http_probe.py` | Сканує 15+ вразливих HTTP-шляхів адмін-панелей |
+| `backdoor_test.py` | Перевіряє відомі CVE-бекдори та UPnP |
+| `upnp_ssl_test.py` | Аналізує UPnP-сервіси та SSL/TLS сертифікати |
+| `default_creds_test.py` | Перевіряє дефолтні облікові дані адмін-панелей |
 
-```bash
-python http_probe.py --host 192.168.1.1 --scheme http
-```
-
-Перевіряє шляхи: `/cgi-bin/`, `/admin/`, `/goform/`, `/boaform/`, `/setup.cgi`, та інші.
-
----
-
-### `backdoor_test.py` — CVE Backdoor Tester
-Перевіряє наявність відомих backdoor-вразливостей:
-- **CVE-2015-0552** — Netcore/Netis UDP backdoor (порт 53413)
-- **UPnP SSDP** discovery (порт 1900/UDP)
-
-```bash
-python backdoor_test.py --host 192.168.1.1
-```
+Залежності — лише стандартна бібліотека Python: `socket`, `ssl`, `urllib`.
 
 ---
 
-### `upnp_ssl_test.py` — UPnP & SSL Analyzer
-- UPnP SSDP multicast discovery
-- SSL/TLS certificate details та версія шифрування
-
-```bash
-python upnp_ssl_test.py --host 192.168.1.1
-```
-
----
-
-### `default_creds_test.py` — Default Credentials Checker
-Перевірка типових паролів адмін-панелей роутерів.
-
-```bash
-python default_creds_test.py --host 192.168.1.1 --port 80
-```
-
----
-
-## Встановлення
+## Використання
 
 ```bash
 git clone https://github.com/yyvolovyk-1983-edu/router-security-toolkit
@@ -65,52 +34,74 @@ cd router-security-toolkit
 pip install -r requirements.txt
 ```
 
-Залежності: тільки стандартна бібліотека Python (socket, ssl, urllib) — зовнішніх пакетів не потрібно.
+### http_probe.py
+
+```bash
+python http_probe.py --host 192.168.1.1
+python http_probe.py --host 192.168.1.1 --scheme https --timeout 5
+```
+
+### backdoor_test.py
+
+```bash
+python backdoor_test.py --host 192.168.1.1
+```
+
+| CVE | Опис | Порт |
+|---|---|---|
+| CVE-2015-0552 | Netcore/Netis UDP backdoor | 53413/UDP |
+| UPnP SSDP | Виявлення UPnP-сервісів | 1900/UDP |
+
+### upnp_ssl_test.py
+
+```bash
+python upnp_ssl_test.py --host 192.168.1.1
+```
+
+### default_creds_test.py
+
+```bash
+python default_creds_test.py --host 192.168.1.1
+```
 
 ---
 
 ## Методологія аудиту (9 фаз)
 
 ```
-Фаза 0: Збір інформації (IP, ISP, PTR, whois)
-Фаза 1: Мережева топологія (ARP, host discovery, port scan)
-Фаза 2: Аудит роутера (HTTP paths, CVE, UPnP, SSL)
-Фаза 3: Wi-Fi аналіз (SSID, шифрування, WPS)
-Фаза 4: Аудит хоста Windows (netstat, autoruns, служби)
-Фаза 5: Браузер (розширення, history)
-Фаза 6: Active Directory / DNS
-Фаза 7: Логи безпеки (Event Log, Defender)
-Фаза 8: Фінальний звіт + план усунення
+Фаза 1   Збір інформації         — модель, прошивка, відкриті порти
+Фаза 2   HTTP-розвідка           → http_probe.py
+Фаза 3   Перевірка бекдорів      → backdoor_test.py
+Фаза 4   UPnP / SSL аналіз       → upnp_ssl_test.py
+Фаза 5   Дефолтні облікові дані  → default_creds_test.py
+Фаза 6   Аналіз мережевого трафіку
+Фаза 7   Перевірка конфігурації (NAT, port forwarding, MAC filtering)
+Фаза 8   Класифікація вразливостей (Critical / High / Medium / Low)
+Фаза 9   Звіт з рекомендаціями
 ```
 
 ---
 
-## Результати реального аудиту
+## Реальний кейс
 
-Застосовано для аудиту домашньої мережі з роутером **Xiaomi Mi Router AX1800**:
-- Знайдено і закрито **27 знахідок** за 48 годин
-- Загальна оцінка безпеки: **D → B+**
-- Усунуто: застарілий роутер з backdoor, налаштовано WPA3, VPN, MAC whitelist
+**Ціль:** Xiaomi Mi Router AX1800
 
----
-
-## Структура проекту
-
-```
-router-security-toolkit/
-├── http_probe.py           # HTTP path scanner
-├── backdoor_test.py        # CVE backdoor tester
-├── upnp_ssl_test.py        # UPnP & SSL analyzer
-├── default_creds_test.py   # Default credentials checker
-├── requirements.txt
-└── docs/
-    └── audit-methodology.md    # Детальна методологія аудиту
-```
+| Показник | До аудиту | Після |
+|---|---|---|
+| Оцінка безпеки | **D** | **B+** |
+| Знайдено вразливостей | — | **27** |
+| Час на усунення | — | 48 годин |
 
 ---
 
-## Автор
+> **Увага:** Інструменти призначені **виключно для авторизованого тестування**.
+> Несанкціоноване використання є порушенням законодавства України (ст. 361 КК України).
 
-**Євген Воловик** — Security Researcher, ХНУА «ХАІ»
+---
 
-[![GitHub](https://img.shields.io/badge/GitHub-yyvolovyk--1983--edu-181717?style=flat&logo=github)](https://github.com/yyvolovyk-1983-edu)
+<div align="center">
+
+**Автор:** [Євген Воловик](https://github.com/yyvolovyk-1983-edu) · Харків, Україна
+📧 y.y.volovyk@student.khai.edu · [LinkedIn](https://www.linkedin.com/in/yevhen-volovyk/)
+
+</div>
